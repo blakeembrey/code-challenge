@@ -1,0 +1,221 @@
+[38;5;28mrequire[39m [38;5;124m'active_support/core_ext/array/extract_options'[39m
+[38;5;28mrequire[39m [38;5;124m'active_support/core_ext/class/attribute'[39m
+[38;5;28mrequire[39m [38;5;124m'active_support/core_ext/hash/keys'[39m
+[38;5;28mrequire[39m [38;5;124m'active_support/core_ext/hash/except'[39m
+[38;5;28mrequire[39m [38;5;124m'active_model/errors'[39m
+[38;5;28mrequire[39m [38;5;124m'active_model/validations/callbacks'[39m
+
+[38;5;28;01mmodule[39;00m [38;5;21;01mActiveModel[39;00m
+
+  [38;5;66m# == Active Model Validations[39m
+  [38;5;66m#[39m
+  [38;5;66m# Provides a full validation framework to your objects.[39m
+  [38;5;66m#[39m
+  [38;5;66m# A minimal implementation could be:[39m
+  [38;5;66m#[39m
+  [38;5;66m#   class Person[39m
+  [38;5;66m#     include ActiveModel::Validations[39m
+  [38;5;66m#[39m
+  [38;5;66m#     attr_accessor :first_name, :last_name[39m
+  [38;5;66m#[39m
+  [38;5;66m#     validates_each :first_name, :last_name do |record, attr, value|[39m
+  [38;5;66m#       record.errors.add attr, 'starts with z.' if value.to_s[0] == ?z[39m
+  [38;5;66m#     end[39m
+  [38;5;66m#   end[39m
+  [38;5;66m#[39m
+  [38;5;66m# Which provides you with the full standard validation stack that you[39m
+  [38;5;66m# know from Active Record:[39m
+  [38;5;66m#[39m
+  [38;5;66m#   person = Person.new[39m
+  [38;5;66m#   person.valid?                   # => true[39m
+  [38;5;66m#   person.invalid?                 # => false[39m
+  [38;5;66m#[39m
+  [38;5;66m#   person.first_name = 'zoolander'[39m
+  [38;5;66m#   person.valid?                   # => false[39m
+  [38;5;66m#   person.invalid?                 # => true[39m
+  [38;5;66m#   person.errors                   # => #<Hash {:first_name=>["starts with z."]}>[39m
+  [38;5;66m#[39m
+  [38;5;66m# Note that <tt>ActiveModel::Validations</tt> automatically adds an +errors+ method[39m
+  [38;5;66m# to your instances initialized with a new <tt>ActiveModel::Errors</tt> object, so[39m
+  [38;5;66m# there is no need for you to do this manually.[39m
+  [38;5;66m#[39m
+  [38;5;28;01mmodule[39;00m [38;5;21;01mValidations[39;00m
+    [38;5;28mextend[39m [38;5;88mActiveSupport[39m[38;5;241m::[39m[38;5;88mConcern[39m
+
+    included [38;5;28;01mdo[39;00m
+      [38;5;28mextend[39m [38;5;88mActiveModel[39m[38;5;241m::[39m[38;5;88mCallbacks[39m
+      [38;5;28mextend[39m [38;5;88mActiveModel[39m[38;5;241m::[39m[38;5;88mTranslation[39m
+
+      [38;5;28mextend[39m  [38;5;88mHelperMethods[39m
+      [38;5;28minclude[39m [38;5;88mHelperMethods[39m
+
+      [38;5;28mattr_accessor[39m [38;5;18m:validation_context[39m
+      define_callbacks [38;5;18m:validate[39m, [38;5;18m:scope[39m [38;5;241m=[39m[38;5;241m>[39m [38;5;18m:name[39m
+
+      [38;5;28mextend[39m [38;5;88mActiveModel[39m[38;5;241m::[39m[38;5;88mConfiguration[39m
+      config_attribute [38;5;18m:_validators[39m
+      [38;5;28mself[39m[38;5;241m.[39m_validators [38;5;241m=[39m [38;5;88mHash[39m[38;5;241m.[39mnew { [38;5;241m|[39mh,k[38;5;241m|[39m h[38;5;241m[[39mk[38;5;241m][39m [38;5;241m=[39m [38;5;241m[[39m[38;5;241m][39m }
+    [38;5;28;01mend[39;00m
+
+    [38;5;28;01mmodule[39;00m [38;5;21;01mClassMethods[39;00m
+      [38;5;66m# Validates each attribute against a block.[39m
+      [38;5;66m#[39m
+      [38;5;66m#   class Person[39m
+      [38;5;66m#     include ActiveModel::Validations[39m
+      [38;5;66m#[39m
+      [38;5;66m#     attr_accessor :first_name, :last_name[39m
+      [38;5;66m#[39m
+      [38;5;66m#     validates_each :first_name, :last_name do |record, attr, value|[39m
+      [38;5;66m#       record.errors.add attr, 'starts with z.' if value.to_s[0] == ?z[39m
+      [38;5;66m#     end[39m
+      [38;5;66m#   end[39m
+      [38;5;66m#[39m
+      [38;5;66m# Options:[39m
+      [38;5;66m# * <tt>:on</tt> - Specifies the context where this validation is active[39m
+      [38;5;66m#   (e.g. <tt>:on => :create</tt> or <tt>:on => :custom_validation_context</tt>)[39m
+      [38;5;66m# * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.[39m
+      [38;5;66m# * <tt>:allow_blank</tt> - Skip validation if attribute is blank.[39m
+      [38;5;66m# * <tt>:if</tt> - Specifies a method, proc or string to call to determine[39m
+      [38;5;66m#   if the validation should occur (e.g. <tt>:if => :allow_validation</tt>,[39m
+      [38;5;66m#   or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>). The method,[39m
+      [38;5;66m#   proc or string should return or evaluate to a true or false value.[39m
+      [38;5;66m# * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should[39m
+      [38;5;66m#   not occur (e.g. <tt>:unless => :skip_validation</tt>, or[39m
+      [38;5;66m#   <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The[39m
+      [38;5;66m#   method, proc or string should return or evaluate to a true or false value.[39m
+      [38;5;28;01mdef[39;00m [38;5;21mvalidates_each[39m([38;5;241m*[39mattr_names, [38;5;241m&[39mblock)
+        options [38;5;241m=[39m attr_names[38;5;241m.[39mextract_options![38;5;241m.[39msymbolize_keys
+        validates_with [38;5;88mBlockValidator[39m, options[38;5;241m.[39mmerge([38;5;18m:attributes[39m [38;5;241m=[39m[38;5;241m>[39m attr_names[38;5;241m.[39mflatten), [38;5;241m&[39mblock
+      [38;5;28;01mend[39;00m
+
+      [38;5;66m# Adds a validation method or block to the class. This is useful when[39m
+      [38;5;66m# overriding the +validate+ instance method becomes too unwieldy and[39m
+      [38;5;66m# you're looking for more descriptive declaration of your validations.[39m
+      [38;5;66m#[39m
+      [38;5;66m# This can be done with a symbol pointing to a method:[39m
+      [38;5;66m#[39m
+      [38;5;66m#   class Comment[39m
+      [38;5;66m#     include ActiveModel::Validations[39m
+      [38;5;66m#[39m
+      [38;5;66m#     validate :must_be_friends[39m
+      [38;5;66m#[39m
+      [38;5;66m#     def must_be_friends[39m
+      [38;5;66m#       errors.add(:base, "Must be friends to leave a comment") unless commenter.friend_of?(commentee)[39m
+      [38;5;66m#     end[39m
+      [38;5;66m#   end[39m
+      [38;5;66m#[39m
+      [38;5;66m# With a block which is passed with the current record to be validated:[39m
+      [38;5;66m#[39m
+      [38;5;66m#   class Comment[39m
+      [38;5;66m#     include ActiveModel::Validations[39m
+      [38;5;66m#[39m
+      [38;5;66m#     validate do |comment|[39m
+      [38;5;66m#       comment.must_be_friends[39m
+      [38;5;66m#     end[39m
+      [38;5;66m#[39m
+      [38;5;66m#     def must_be_friends[39m
+      [38;5;66m#       errors.add(:base, "Must be friends to leave a comment") unless commenter.friend_of?(commentee)[39m
+      [38;5;66m#     end[39m
+      [38;5;66m#   end[39m
+      [38;5;66m#[39m
+      [38;5;66m# Or with a block where self points to the current record to be validated:[39m
+      [38;5;66m#[39m
+      [38;5;66m#   class Comment[39m
+      [38;5;66m#     include ActiveModel::Validations[39m
+      [38;5;66m#[39m
+      [38;5;66m#     validate do[39m
+      [38;5;66m#       errors.add(:base, "Must be friends to leave a comment") unless commenter.friend_of?(commentee)[39m
+      [38;5;66m#     end[39m
+      [38;5;66m#   end[39m
+      [38;5;66m#[39m
+      [38;5;28;01mdef[39;00m [38;5;21mvalidate[39m([38;5;241m*[39margs, [38;5;241m&[39mblock)
+        options [38;5;241m=[39m args[38;5;241m.[39mextract_options!
+        [38;5;28;01mif[39;00m options[38;5;241m.[39mkey?([38;5;18m:on[39m)
+          options [38;5;241m=[39m options[38;5;241m.[39mdup
+          options[38;5;241m[[39m[38;5;18m:if[39m[38;5;241m][39m [38;5;241m=[39m [38;5;28mArray[39m(options[38;5;241m[[39m[38;5;18m:if[39m[38;5;241m][39m)
+          options[38;5;241m[[39m[38;5;18m:if[39m[38;5;241m][39m[38;5;241m.[39munshift([38;5;124m"[39m[38;5;124mvalidation_context == :[39m[38;5;132;01m#{[39;00moptions[38;5;241m[[39m[38;5;18m:on[39m[38;5;241m][39m[38;5;132;01m}[39;00m[38;5;124m"[39m)
+        [38;5;28;01mend[39;00m
+        args [38;5;241m<<[39m options
+        set_callback([38;5;18m:validate[39m, [38;5;241m*[39margs, [38;5;241m&[39mblock)
+      [38;5;28;01mend[39;00m
+
+      [38;5;66m# List all validators that are being used to validate the model using[39m
+      [38;5;66m# +validates_with+ method.[39m
+      [38;5;28;01mdef[39;00m [38;5;21mvalidators[39m
+        _validators[38;5;241m.[39mvalues[38;5;241m.[39mflatten[38;5;241m.[39muniq
+      [38;5;28;01mend[39;00m
+
+      [38;5;66m# List all validators that being used to validate a specific attribute.[39m
+      [38;5;28;01mdef[39;00m [38;5;21mvalidators_on[39m([38;5;241m*[39mattributes)
+        attributes[38;5;241m.[39mmap [38;5;28;01mdo[39;00m [38;5;241m|[39mattribute[38;5;241m|[39m
+          _validators[38;5;241m[[39mattribute[38;5;241m.[39mto_sym[38;5;241m][39m
+        [38;5;28;01mend[39;00m[38;5;241m.[39mflatten
+      [38;5;28;01mend[39;00m
+
+      [38;5;66m# Check if method is an attribute method or not.[39m
+      [38;5;28;01mdef[39;00m [38;5;21mattribute_method?[39m(attribute)
+        [38;5;28mmethod_defined?[39m(attribute)
+      [38;5;28;01mend[39;00m
+
+      [38;5;66m# Copy validators on inheritance.[39m
+      [38;5;28;01mdef[39;00m [38;5;21minherited[39m(base)
+        [38;5;28mdup[39m [38;5;241m=[39m _validators[38;5;241m.[39mdup
+        base[38;5;241m.[39m_validators [38;5;241m=[39m [38;5;28mdup[39m[38;5;241m.[39meach { [38;5;241m|[39mk, v[38;5;241m|[39m [38;5;28mdup[39m[38;5;241m[[39mk[38;5;241m][39m [38;5;241m=[39m v[38;5;241m.[39mdup }
+        [38;5;28;01msuper[39;00m
+      [38;5;28;01mend[39;00m
+    [38;5;28;01mend[39;00m
+
+    [38;5;66m# Returns the +Errors+ object that holds all information about attribute error messages.[39m
+    [38;5;28;01mdef[39;00m [38;5;21merrors[39m
+      [38;5;18m@errors[39m [38;5;241m||[39m[38;5;241m=[39m [38;5;88mErrors[39m[38;5;241m.[39mnew([38;5;28mself[39m)
+    [38;5;28;01mend[39;00m
+
+    [38;5;66m# Runs all the specified validations and returns true if no errors were added[39m
+    [38;5;66m# otherwise false. Context can optionally be supplied to define which callbacks[39m
+    [38;5;66m# to test against (the context is defined on the validations using :on).[39m
+    [38;5;28;01mdef[39;00m [38;5;21mvalid?[39m(context [38;5;241m=[39m [38;5;28mnil[39m)
+      current_context, [38;5;28mself[39m[38;5;241m.[39mvalidation_context [38;5;241m=[39m validation_context, context
+      errors[38;5;241m.[39mclear
+      run_validations!
+    [38;5;28;01mensure[39;00m
+      [38;5;28mself[39m[38;5;241m.[39mvalidation_context [38;5;241m=[39m current_context
+    [38;5;28;01mend[39;00m
+
+    [38;5;66m# Performs the opposite of <tt>valid?</tt>. Returns true if errors were added,[39m
+    [38;5;66m# false otherwise.[39m
+    [38;5;28;01mdef[39;00m [38;5;21minvalid?[39m(context [38;5;241m=[39m [38;5;28mnil[39m)
+      [38;5;241m![39mvalid?(context)
+    [38;5;28;01mend[39;00m
+
+    [38;5;66m# Hook method defining how an attribute value should be retrieved. By default[39m
+    [38;5;66m# this is assumed to be an instance named after the attribute. Override this[39m
+    [38;5;66m# method in subclasses should you need to retrieve the value for a given[39m
+    [38;5;66m# attribute differently:[39m
+    [38;5;66m#[39m
+    [38;5;66m#   class MyClass[39m
+    [38;5;66m#     include ActiveModel::Validations[39m
+    [38;5;66m#[39m
+    [38;5;66m#     def initialize(data = {})[39m
+    [38;5;66m#       @data = data[39m
+    [38;5;66m#     end[39m
+    [38;5;66m#[39m
+    [38;5;66m#     def read_attribute_for_validation(key)[39m
+    [38;5;66m#       @data[key][39m
+    [38;5;66m#     end[39m
+    [38;5;66m#   end[39m
+    [38;5;66m#[39m
+    [38;5;28;01malias[39;00m [38;5;18m:read_attribute_for_validation[39m [38;5;18m:send[39m
+
+  [38;5;28mprotected[39m
+
+    [38;5;28;01mdef[39;00m [38;5;21mrun_validations![39m
+      run_callbacks [38;5;18m:validate[39m
+      errors[38;5;241m.[39mempty?
+    [38;5;28;01mend[39;00m
+  [38;5;28;01mend[39;00m
+[38;5;28;01mend[39;00m
+
+[38;5;88mDir[39m[38;5;241m[[39m[38;5;88mFile[39m[38;5;241m.[39mdirname([38;5;28m__FILE__[39m) [38;5;241m+[39m [38;5;124m"[39m[38;5;124m/validations/*.rb[39m[38;5;124m"[39m[38;5;241m][39m[38;5;241m.[39msort[38;5;241m.[39meach [38;5;28;01mdo[39;00m [38;5;241m|[39mpath[38;5;241m|[39m
+  filename [38;5;241m=[39m [38;5;88mFile[39m[38;5;241m.[39mbasename(path)
+  [38;5;28mrequire[39m [38;5;124m"[39m[38;5;124mactive_model/validations/[39m[38;5;132;01m#{[39;00mfilename[38;5;132;01m}[39;00m[38;5;124m"[39m
+[38;5;28;01mend[39;00m

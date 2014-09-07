@@ -1,0 +1,61 @@
+{
+  "name": "code-challenge",
+  "description": "Command line interface for running code challenges",
+  "version": "0.0.0",
+  "main": "./index.js",
+  "scripts": {
+    "test": "npm run test-lint && npm run test-spec",
+    "test-lint": "jshint *.js lib/**/*.js",
+    "test-spec": "istanbul cover node_modules/mocha/bin/_mocha test/spec/**/*.js --require test/support/globals.js -- -R spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/blakeembrey/code-challenge.git"
+  },
+  "bin": {
+    "challenge": "./bin/challenge.js"
+  },
+  "keywords": [
+    "code",
+    "challenge",
+    "problem",
+    "practice",
+    "interview"
+  ],
+  "author": {
+    "name": "Blake Embrey",
+    "email": "hello@blakeembrey.com",
+    "url": "http://blakeembrey.me"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/blakeembrey/code-challenge/issues"
+  },
+  "homepage": "https://github.com/blakeembrey/code-challenge",
+  "dependencies": {
+    "bluebird": "^2.1.3",
+    "chalk": "^0.5.1",
+    "glob": "^4.0.3",
+    "language-detect": "^1.0.0",
+    "language-detect-exec": "^1.0.0",
+    "language-detect-spawn": "^1.0.0",
+    "language-map": "^1.0.0",
+    "lodash": "^2.4.1",
+    "mkdirp": "^0.5.0",
+    "orchestrator": "^0.3.3",
+    "pygmentize-bundled": "^2.1.1",
+    "repeat-string": "^0.1.2",
+    "resolve": "^1.0.0",
+    "term-list-scrollable": "^0.1.3",
+    "yargs": "^1.2.2"
+  },
+  "devDependencies": {
+    "chai": "^1.9.1",
+    "chai-as-promised": "^4.1.1",
+    "istanbul": "^0.3.0",
+    "jshint": "^2.5.2",
+    "mocha": "^1.19.0",
+    "sinon": "^1.10.0",
+    "sinon-chai": "^2.5.0"
+  }
+}
