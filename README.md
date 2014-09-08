@@ -32,9 +32,37 @@ challenge prev # Move to the previous exercise
 
 To get started, try installing your first challenge. I'd recommend [Project Euler](https://projecteuler.net/) using `npm install -g code-challenge-euler`.
 
+## Create Your Own Challenge
+
+To create a custom challenge pack to share, you'll need to create a new npm module and add `code-challenge` as a dependency. The module name must be prefixed with `code-challenge-` to automatically be loaded. The modules main file should require `code-challenge`, set the challenge title and add exercises.
+
+```javascript
+var assert    = require('assert');
+var challenge = require('code-challenge');
+
+challenge.title = 'Example Challenge';
+
+challenge.exercise('First Exercise')
+  .add('print', function () {
+    return challenge.renderFile(__dirname + '/exercises/01.md');
+  })
+  .add('verify', function () {
+    return challenge.execFile(this._[0])
+      .spread(function (stdout) {
+        assert.equal(stdout, 'Example output\n');
+      });
+  });
+
+...
+
+challenge.exercise('Tenth Exercise')
+  .add('print', ...)
+  .add('verify', ...);
+```
+
 ## Inspiration
 
-Code challenge was originally inspired by all the work put into [learnyounode](https://github.com/rvagg/learnyounode) and [stream-adventure](https://github.com/substack/stream-adventure).
+Code challenge was originally inspired by all the work put into [learnyounode](https://github.com/rvagg/learnyounode), [stream-adventure](https://github.com/substack/stream-adventure) and [gulp](https://github.com/gulpjs/gulp).
 
 ## License
 
