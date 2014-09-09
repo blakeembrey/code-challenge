@@ -66,7 +66,7 @@ Challenge comes with a `renderFile` method that supports rending content from a 
 
 ### Executing Any File
 
-Challenge support executing most programming languages based on the file name automatically. By using the `execFile` or `spawnFile` methods, you're challenge will be future proof and support all possible languages.
+Challenge support executing most programming languages based on the file name automatically. By using the `execFile` or `spawnFile` methods, your challenge will be future proof and support all possible languages.
 
 ### Failing an Exercise
 
