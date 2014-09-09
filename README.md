@@ -60,6 +60,18 @@ challenge.exercise('Tenth Exercise')
   .add('verify', ...);
 ```
 
+### Rendering Any File
+
+Challenge comes with a `renderFile` method that supports rending content from a file with standard syntax highlighting and colours.
+
+### Executing Any File
+
+Challenge support executing most programming languages based on the file name automatically. By using the `execFile` or `spawnFile` methods, you're challenge will be future proof and support all possible languages.
+
+### Failing an Exercise
+
+When running the verification task, you can throw an error, reject a promise, error in a stream or pass an error as the first parameter of the callback to provide feedback.
+
 ## Inspiration
 
 Code challenge was originally inspired by all the work put into [learnyounode](https://github.com/rvagg/learnyounode), [stream-adventure](https://github.com/substack/stream-adventure) and [gulp](https://github.com/gulpjs/gulp).
