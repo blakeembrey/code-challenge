@@ -1,7 +1,7 @@
 {
   "name": "code-challenge",
   "description": "Command line interface for running code challenges",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "main": "./index.js",
   "scripts": {
     "test": "npm run test-lint && npm run test-spec",
