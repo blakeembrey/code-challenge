@@ -18,7 +18,7 @@ npm install -g code-challenge
 ## Usage
 
 ```bash
-challenge select   # Select a challange to use
+challenge select   # Select a challenge to use
 challenge exercise # Select an exercise to run
 
 challenge print         # Print the currently selected exercise
