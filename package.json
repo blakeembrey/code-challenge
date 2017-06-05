@@ -52,7 +52,7 @@
     "yargs": "^8.0.1"
   },
   "devDependencies": {
-    "chai": "^3.5.0",
+    "chai": "^4.0.2",
     "chai-as-promised": "^6.0.0",
     "istanbul": "^0.4.5",
     "jshint": "^2.5.2",
